@@ -16,10 +16,6 @@ public class WeatherGlobant {
 			climaActual hoy = new climaActual();
 			localidad localidad = new localidad();
 			traductor traductor = new traductor();
-//			float temperatura;
-
-			// TODO Auto-generated method stub
-
 			URL url = new URL(urlString);
 			Scanner lector = new Scanner(url.openStream());
 			String JSON = new String();
@@ -34,8 +30,6 @@ public class WeatherGlobant {
 					.getJSONObject("location").getString("city"));
 			localidad.setPais(objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
 					.getJSONObject("location").getString("country"));
-			// localidad.setRegion(objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel").getJSONObject("location").getString("region"));
-
 			hoy.setSensacionTemperatura(objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
 					.getJSONObject("wind").getInt("chill"));
 			hoy.setDireccion(objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
@@ -50,12 +44,16 @@ public class WeatherGlobant {
 					.getJSONObject("item").getJSONObject("condition").getString("text"));
 
 			System.out.println("CLIMA ACTUAL PARA: " + localidad.getCiudad() + ", " + localidad.getPais());
-
-
 			System.out.println("Fecha Actualizacion: " + hoy.getFecha());
-			System.out.println("Temperatura: " + hoy.cambiarTemperatura(hoy.getTemperatura())+ " *");
+			System.out.println("Temperatura: " + hoy.cambiarTemperatura(hoy.getTemperatura()) + " *");
 			System.out.println(traductor.traduceCondiciones(hoy.getTexto()));
-//			System.out.println(hoy.getTexto());
+			System.out.println("Minima: " + hoy
+					.cambiarTemperatura(objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
+							.getJSONObject("item").getJSONArray("forecast").getJSONObject(0).getInt("low")));
+			System.out.println("Maxima: " + hoy
+					.cambiarTemperatura(objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
+							.getJSONObject("item").getJSONArray("forecast").getJSONObject(0).getInt("high")));
+			// System.out.println(hoy.getTexto());
 
 			System.out.println("\n*** CLIMA PROXIMOS DIAS ****\n");
 			ArrayList<JSONObject> listaForecast = new ArrayList<JSONObject>();
@@ -70,11 +68,14 @@ public class WeatherGlobant {
 			for (int i = 0; i < listaForecast.size(); i++) {
 				System.out.println("Fecha: " + listaForecast.get(i).getString("day") + " "
 						+ listaForecast.get(i).getString("date"));
-				System.out.println("Temp. Minima: " + hoy.cambiarTemperatura(listaForecast.get(i).getInt("low"))+" *");
-				System.out.println("Temp. Maxima: " + hoy.cambiarTemperatura(listaForecast.get(i).getInt("high"))+" *");
+				System.out
+						.println("Temp. Minima: " + hoy.cambiarTemperatura(listaForecast.get(i).getInt("low")) + " *");
+				System.out
+						.println("Temp. Maxima: " + hoy.cambiarTemperatura(listaForecast.get(i).getInt("high")) + " *");
 
-//				System.out.println(listaForecast.get(i).getString("text"));
-								System.out.println("Condiciones: " + traductor.traduceCondiciones(listaForecast.get(i).getString("text")));
+				// System.out.println(listaForecast.get(i).getString("text"));
+				System.out.println(
+						"Condiciones: " + traductor.traduceCondiciones(listaForecast.get(i).getString("text")));
 				System.out.println("**********************");
 			}
 		} catch (Exception e) {
@@ -90,9 +91,9 @@ class localidad {
 
 	}
 
-	String ciudad;
-	String pais;
-	String region;
+	private String ciudad;
+	private String pais;
+	private String region;
 
 	public String getCiudad() {
 		return ciudad;
@@ -126,20 +127,19 @@ class climaActual {
 
 	}
 
-	String texto;
+	private String texto;
 
-	String velocidad;
-	String direccion;
-	int sensacionTemperatura;
-	int temperatura;
-	String fecha;
-
-	String humedad;
-	String presion;
-	String rising;
-	String visibilidad;
-	String amanecer;
-	String anochecer;
+	private String velocidad;
+	private String direccion;
+	private int sensacionTemperatura;
+	private int temperatura;
+	private String fecha;
+	private String humedad;
+	private String presion;
+	private String rising;
+	private String visibilidad;
+	private String amanecer;
+	private String anochecer;
 
 	public String getTexto() {
 		return texto;
@@ -203,16 +203,6 @@ class climaActual {
 	}
 }
 
-class clima {
-	ArrayList<JSONObject> listaForecast = new ArrayList<JSONObject>();
-
-	public clima(ArrayList<JSONObject> listaForecast) {
-		this.listaForecast = listaForecast;
-
-	}
-
-}
-
 class traductor {
 	private String texto;
 
@@ -233,12 +223,15 @@ class traductor {
 		else if (condiciones.equals("Cloudy")) {
 			texto = "Nublado";
 		}
-		
-		else if(condiciones.equals("Showers")){
+
+		else if (condiciones.equals("Showers")) {
 			texto = "Chaparrones";
-		}
-		else if(condiciones.equals("Mostly Sunny")){
+		} else if (condiciones.equals("Mostly Sunny")) {
 			texto = "Mayormente Soleado";
+		}
+
+		else if (condiciones.equals("Thunderstorms")) {
+			texto = "Tormentas Electricas";
 		}
 
 		else {
