@@ -5,29 +5,23 @@ public class WeatherGlobant {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
-		Wind viento = new Wind();
-		Atmosphere atmosfera = new Atmosphere();
-		Astronomy astronomia = new Astronomy();
 		CurrentConditions condicionesActuales = new CurrentConditions();
-
+		Forecast forecast = new Forecast();
 	}
 
 }
 
 class Wind {
-	int chill;
-	int direction;
-	int speed;
+	private double chill;
+	private int direction;
+	private int speed;
 
-	public Wind() {
 
-	}
-
-	public int getChill() {
+	public double getChill() {
 		return chill;
 	}
 
-	public void setChill(int chill) {
+	public void setChill(double chill) {
 		this.chill = chill;
 	}
 
@@ -50,10 +44,10 @@ class Wind {
 }
 
 class Atmosphere {
-	double humidity;
-	double pressure;
-	int rising;
-	double visibility;
+	private double humidity;
+	private double pressure;
+	private int rising;
+	private double visibility;
 
 	public Atmosphere() {
 
@@ -94,8 +88,8 @@ class Atmosphere {
 }
 
 class Astronomy {
-	String sunrise;
-	String sunset;
+	private String sunrise;
+	private String sunset;
 
 	public Astronomy() {
 
@@ -120,19 +114,21 @@ class Astronomy {
 }
 
 class CurrentConditions {
-	int temp;
-	String text;
-	String date;
-
+	//private Wind viento;
+	private double temp;
+	private String text;
+	private String date;
+	
+	
 	public CurrentConditions() {
 
 	}
 
-	public int getTemp() {
+	public double getTemp() {
 		return temp;
 	}
 
-	public void setTemp(int temp) {
+	public void setTemp(double temp) {
 		this.temp = temp;
 	}
 
@@ -151,12 +147,36 @@ class CurrentConditions {
 	public void setDate(String date) {
 		this.date = date;
 	}
+	
+	
+	protected Wind viento = new Wind();
+	protected Atmosphere atmosfera = new Atmosphere();
+	protected Astronomy astronomia = new Astronomy();
+	
+	public void mostrarViento(){
+		System.out.println(viento.getChill());
+		System.out.println(viento.getDirection());
+		System.out.println(viento.getSpeed());
+	}
+	
+	public void mostrarAtmosfera(){
+		System.out.println(atmosfera.getHumidity());
+		System.out.println(atmosfera.getPressure());
+		System.out.println(atmosfera.getRising());
+		System.out.println(atmosfera.getVisibility());
+	}
+	
+	public void mostrarAstronomia(){
+		System.out.println(astronomia.getSunrise());
+		System.out.println(astronomia.getSunset());
+	}
+	
 
 }
 
 class Forecast {
-	String date, day, text;
-	int high, low;
+	private String date, day, text;
+	private double high, low;
 
 	public Forecast() {
 
@@ -186,19 +206,19 @@ class Forecast {
 		this.text = text;
 	}
 
-	public int getHigh() {
+	public double getHigh() {
 		return high;
 	}
 
-	public void setHigh(int high) {
+	public void setHigh(double high) {
 		this.high = high;
 	}
 
-	public int getLow() {
+	public double getLow() {
 		return low;
 	}
 
-	public void setLow(int low) {
+	public void setLow(double low) {
 		this.low = low;
 	}
 
