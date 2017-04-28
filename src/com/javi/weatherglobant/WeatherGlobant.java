@@ -1,10 +1,12 @@
 package com.javi.weatherglobant;
 
 public class WeatherGlobant {
-
+	private String endPoint ="";
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
+		
+		
 		CurrentConditions condicionesActuales = new CurrentConditions();
 		Forecast forecast = new Forecast();
 	}
