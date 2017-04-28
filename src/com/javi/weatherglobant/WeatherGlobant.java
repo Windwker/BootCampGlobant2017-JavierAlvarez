@@ -1,18 +1,55 @@
 package com.javi.weatherglobant;
 
+import java.io.IOException;
 import java.net.URL;
+import java.util.Scanner;
+
+import org.json.JSONObject;
 
 public class WeatherGlobant {
-	private String endPoint ="https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22cordoba%2C%20argentina%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
+	private static String endPoint = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22cordoba%2C%20argentina%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
 
 		URL url = new URL(endPoint);
+		Scanner sc = new Scanner(url.openStream());
+		String JSON = new String();
+
+		while (sc.hasNext()) {
+			JSON += sc.next();
+		}
+
+		JSONObject objeto = new JSONObject(JSON);
+		CurrentConditions condicionesActuales = new CurrentConditions(
+				new Wind(
+						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
+								.getJSONObject("wind").getDouble("chill"),
+						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
+								.getJSONObject("wind").getInt("direction"),
+						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
+								.getJSONObject("wind").getInt("speed")),
+				new Astronomy(
+						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
+								.getJSONObject("astronomy").getString("sunrise"),
+						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
+								.getJSONObject("astronomy").getString("sunset")),
+				new Atmosphere(
+						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
+								.getJSONObject("atmosphere").getDouble("humidity"),
+						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
+								.getJSONObject("atmosphere").getDouble("pressure"),
+						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
+								.getJSONObject("atmosphere").getInt("rising"),
+						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
+								.getJSONObject("atmosphere").getDouble("visibility")));
 		
-		
-		CurrentConditions condicionesActuales = new CurrentConditions();
 		Forecast forecast = new Forecast();
+		
+		System.out.println("***CONDICIONES ACTUALES***\n");
+		condicionesActuales.mostrarCondicionesActuales();
+		
+
 	}
 
 }
@@ -22,6 +59,12 @@ class Wind {
 	private int direction;
 	private int speed;
 
+	public Wind(double chill, int direction, int speed) {
+		this.chill = chill;
+		this.direction = direction;
+		this.speed = speed;
+
+	}
 
 	public double getChill() {
 		return chill;
@@ -55,7 +98,11 @@ class Atmosphere {
 	private int rising;
 	private double visibility;
 
-	public Atmosphere() {
+	public Atmosphere(double humidity, double pressure, int rising, double visibility) {
+		this.humidity = humidity;
+		this.pressure = pressure;
+		this.rising = rising;
+		this.visibility = visibility;
 
 	}
 
@@ -97,7 +144,9 @@ class Astronomy {
 	private String sunrise;
 	private String sunset;
 
-	public Astronomy() {
+	public Astronomy(String sunrise, String sunset) {
+		this.sunrise = sunrise;
+		this.sunset = sunset;
 
 	}
 
@@ -120,14 +169,17 @@ class Astronomy {
 }
 
 class CurrentConditions {
-	//private Wind viento;
+	private Wind viento;
+	private Astronomy astronomia;
+	private Atmosphere atmosfera;
 	private double temp;
 	private String text;
 	private String date;
-	
-	
-	public CurrentConditions() {
 
+	public CurrentConditions(Wind viento, Astronomy astronomia, Atmosphere atmosfera) {
+		this.viento = viento;
+		this.astronomia = astronomia;
+		this.atmosfera = atmosfera;
 	}
 
 	public double getTemp() {
@@ -153,30 +205,30 @@ class CurrentConditions {
 	public void setDate(String date) {
 		this.date = date;
 	}
-	
-	
-	protected Wind viento = new Wind();
-	protected Atmosphere atmosfera = new Atmosphere();
-	protected Astronomy astronomia = new Astronomy();
-	
-	public void mostrarViento(){
-		System.out.println(viento.getChill());
-		System.out.println(viento.getDirection());
-		System.out.println(viento.getSpeed());
+
+	private void mostrarViento() {
+		System.out.println("Chill de viento: " + viento.getChill());
+		System.out.println("Direccion de viento: " + viento.getDirection());
+		System.out.println("Velocidad de viento: " + viento.getSpeed());
+	}
+
+	private void mostrarAtmosfera() {
+		System.out.println("Humedad: " + atmosfera.getHumidity());
+		System.out.println("Presion Atmosferica: " + atmosfera.getPressure());
+		System.out.println("Rising: " + atmosfera.getRising());
+		System.out.println("Visibilidad: " + atmosfera.getVisibility());
+	}
+
+	private void mostrarAstronomia() {
+		System.out.println("Salida del sol: " + astronomia.getSunrise());
+		System.out.println("Puesta del sol: " + astronomia.getSunset());
 	}
 	
-	public void mostrarAtmosfera(){
-		System.out.println(atmosfera.getHumidity());
-		System.out.println(atmosfera.getPressure());
-		System.out.println(atmosfera.getRising());
-		System.out.println(atmosfera.getVisibility());
+	public void mostrarCondicionesActuales(){
+		mostrarViento();
+		mostrarAtmosfera();
+		mostrarAstronomia();
 	}
-	
-	public void mostrarAstronomia(){
-		System.out.println(astronomia.getSunrise());
-		System.out.println(astronomia.getSunset());
-	}
-	
 
 }
 
