@@ -1,60 +1,65 @@
 package com.javi.weatherglobant;
 
 import java.io.IOException;
-import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Scanner;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 public class WeatherGlobant {
-	private static String endPoint = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22cordoba%2C%20argentina%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
 
 	public static void main(String[] args) throws IOException {
-		// TODO Auto-generated method stub
 
-		URL url = new URL(endPoint);
-		Scanner sc = new Scanner(url.openStream());
-		String JSON = new String();
+		int error = 0;
 
-		while (sc.hasNext()) {
-			JSON += sc.next();
-		}
+		do {
+			Scanner SC = new Scanner(System.in);
+			try {
+				System.out.println("Ingrese breve descripcion de condiciones. Ej: Nublado. : ");
+				String texto = SC.next();
+				System.out.println("Ingrese temperatura: ");
+				float temp = SC.nextFloat();
+				System.out.println(("Ingrese sensacion termica: "));
+				float chill = SC.nextFloat();
+				System.out.println("Ingrese direccion del viento: ");
+				int direction = SC.nextInt();
+				System.out.println("Ingrese velocidad del viento: ");
+				int speed = SC.nextInt();
+				System.out.println("Ingrese salida del sol: ");
+				String sunrise = SC.next();
+				System.out.println("Ingrese puesta del sol: ");
+				String sunset = SC.next();
+				System.out.println("Ingrese humedad: ");
+				double humidity = SC.nextDouble();
+				System.out.println("Ingrese Presion Atmosferica: ");
+				double pressure = SC.nextDouble();
+				System.out.println("Ingrese visibilidad: ");
+				double visibility = SC.nextDouble();
 
-		JSONObject objeto = new JSONObject(JSON);
-		CurrentConditions condicionesActuales = new CurrentConditions(
+				CurrentConditions condicionesActuales = new CurrentConditions(
 
-				objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel").getJSONObject("item")
-						.getJSONObject("condition").getString("text"),
-				(float) objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
-						.getJSONObject("item").getJSONObject("condition").getDouble("temp"),
-				new Wind(
-						(float) objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
-								.getJSONObject("wind").getDouble("chill"),
-						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
-								.getJSONObject("wind").getInt("direction"),
-						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
-								.getJSONObject("wind").getInt("speed")),
-				new Astronomy(
-						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
-								.getJSONObject("astronomy").getString("sunrise"),
-						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
-								.getJSONObject("astronomy").getString("sunset")),
-				new Atmosphere(
-						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
-								.getJSONObject("atmosphere").getDouble("humidity"),
-						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
-								.getJSONObject("atmosphere").getDouble("pressure"),
-						objeto.getJSONObject("query").getJSONObject("results").getJSONObject("channel")
-								.getJSONObject("atmosphere").getDouble("visibility")));
+						texto, temp, new Wind(chill, direction, speed), new Astronomy(sunrise, sunset),
+						new Atmosphere(humidity, pressure, visibility));
 
-		Forecast forecast = new Forecast(((objeto.getJSONObject("query").getJSONObject("results")
-				.getJSONObject("channel").getJSONObject("item").getJSONArray("forecast"))));
+				Forecast pronostico = new Forecast();
+				pronostico.cargarForecast();
+				System.out.println("***CONDICIONES ACTUALES***\n");
 
-		System.out.println("***CONDICIONES ACTUALES***\n");
-		condicionesActuales.mostrarCondicionesActuales();
-		System.out.println("\n***CLIMA PROXIMOS DIAS:***\n");
-		forecast.leerForecast();
+				condicionesActuales.mostrarCondicionesActuales();
+
+				System.out.println("\n***CLIMA PROXIMOS DIAS:***\n");
+
+				pronostico.leerForecast();
+
+			} catch (Exception e) {
+				System.out.println("Error" + e.getMessage());
+				error = 1;
+			}
+		} while (error == 1);
 
 	}
 
@@ -210,11 +215,11 @@ class CurrentConditions {
 	}
 
 	private void mostrarTemp() {
-		System.out.println("Temperatura: " + Auxiliares.cambiarTemperatura(temp));
+		System.out.println("Temperatura: " + temp);
 	}
 
 	private void mostrarViento() {
-		System.out.println("Sensacion Termica: " + Auxiliares.cambiarTemperatura(viento.getChill()));
+		System.out.println("Sensacion Termica: " + (viento.getChill()));
 		System.out.println("Direccion de viento: " + viento.getDirection());
 		System.out.println("Velocidad de viento: " + viento.getSpeed());
 	}
@@ -241,26 +246,85 @@ class CurrentConditions {
 }
 
 class Forecast {
+
+	private String USR = "root";
+	private String PSW = "1234";
+	private String URL = "jdbc:mysql://localhost:3306/prueba?&useSSL=false";
+
 	private String date, day, text;
 	private double high, low;
-	JSONArray forecast;
+	private ArrayList<Forecast> listado = new ArrayList<Forecast>();
 
-	public Forecast(JSONArray forecast) {
-		this.forecast = forecast;
+	public Forecast() {
+
+	}
+
+	public Forecast(String date, String day, String text, double high, double low) {
+		this.date = date;
+		this.day = day;
+		this.text = text;
+		this.low = low;
+		this.high = high;
+	}
+
+	public void cargarForecast() {
+
+		Scanner sc = new Scanner(System.in);
+		try {
+			Connection conection = DriverManager.getConnection(URL, USR, PSW);
+			PreparedStatement miSentencia = conection
+					.prepareStatement("INSERT INTO forecast (date, day, text, high, low) VALUES(?,?,?,?,?)");
+
+			for (int i = 0; i < 2; i++) {
+				System.out.println("**Ingrese siguiente dia de FORECAST**");
+				System.out.println("Ingrese nombre de dia: ");
+				String day = sc.next();
+				System.out.println("Ingrese fecha: ");
+				String date = sc.next();
+				System.out.println("Ingrese descripcion: ");
+				String text = sc.next();
+				System.out.println("Ingrese temperatura Minima: ");
+				double low = sc.nextDouble();
+				System.out.println("Ingrese temperatura Maxima: ");
+				double high = sc.nextDouble();
+
+				miSentencia.setString(1, date);
+				miSentencia.setString(2, day);
+				miSentencia.setString(3, text);
+				miSentencia.setDouble(4, high);
+				miSentencia.setDouble(5, low);
+				miSentencia.execute();
+				
+			}
+			miSentencia.close();
+
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+
 	}
 
 	public void leerForecast() {
-
-		for (int i = 1; i < 6; i++) {
-			System.out.println("\n" + forecast.getJSONObject(i).getString("day") + " "
-					+ forecast.getJSONObject(i).getString("date"));
-			System.out.println(
-					"Minima: " + Auxiliares.cambiarTemperatura((float) forecast.getJSONObject(i).getDouble("low")));
-			System.out.println(
-					"Maxima: " + Auxiliares.cambiarTemperatura((float) forecast.getJSONObject(i).getDouble("high")));
-			System.out.println("Estado: " + Auxiliares.traduceCondiciones(forecast.getJSONObject(i).getString("text")));
-
+		try {
+			Connection conection = DriverManager.getConnection(URL, USR, PSW);
+			Statement st = conection.createStatement();
+			ResultSet rs = st.executeQuery("SELECT * FROM forecast");
+			while(rs.next()){
+				
+				System.out.println("\n"+rs.getString(2)+" " + rs.getString(1));
+				System.out.println("Estado: " + rs.getString(3));
+				System.out.println("Minima: " + rs.getFloat(5));
+				System.out.println("Maxima: " + rs.getFloat(4));
+			}
+			
+			
+			
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+
 
 	}
 
