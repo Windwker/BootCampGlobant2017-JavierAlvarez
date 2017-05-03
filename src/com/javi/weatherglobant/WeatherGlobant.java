@@ -15,58 +15,62 @@ public class WeatherGlobant {
 	public static void main(String[] args) throws IOException {
 
 		int error = 0;
+		float temp=0;
+		String texto="";
+		float chill=0;
+		int direction=0;
+		int speed=0;
+		String sunrise="";
+		String sunset="";
+		double humidity=0;
+		double pressure=0;
+		double visibility=0;
 
 		do {
 			Scanner SC = new Scanner(System.in);
 			try {
 				System.out.println("Ingrese breve descripcion de condiciones. Ej: Nublado. : ");
-				String texto = SC.next();
+				texto = SC.next();
 				System.out.println("Ingrese temperatura: ");
-				float temp = SC.nextFloat();
+				temp = SC.nextFloat();
 				System.out.println(("Ingrese sensacion termica: "));
-				float chill = SC.nextFloat();
+				chill = SC.nextFloat();
 				System.out.println("Ingrese direccion del viento: ");
-				int direction = SC.nextInt();
+				direction = SC.nextInt();
 				System.out.println("Ingrese velocidad del viento: ");
-				int speed = SC.nextInt();
+				speed = SC.nextInt();
 				System.out.println("Ingrese salida del sol: ");
-				String sunrise = SC.next();
+				sunrise = SC.next();
 				System.out.println("Ingrese puesta del sol: ");
-				String sunset = SC.next();
+				sunset = SC.next();
 				System.out.println("Ingrese humedad: ");
-				double humidity = SC.nextDouble();
+				humidity = SC.nextDouble();
 				System.out.println("Ingrese Presion Atmosferica: ");
-				double pressure = SC.nextDouble();
+				pressure = SC.nextDouble();
 				System.out.println("Ingrese visibilidad: ");
-				double visibility = SC.nextDouble();
-
-				CurrentConditions condicionesActuales = new CurrentConditions(
-
-						texto, temp, new Wind(chill, direction, speed), new Astronomy(sunrise, sunset),
-						new Atmosphere(humidity, pressure, visibility));
-
-				Forecast pronostico = new Forecast();
-				pronostico.cargarForecast();
-				System.out.println("***CONDICIONES ACTUALES***\n");
-
-				condicionesActuales.mostrarCondicionesActuales();
-
-				System.out.println("\n***CLIMA PROXIMOS DIAS:***\n");
-
-				pronostico.leerForecast();
+				visibility = SC.nextDouble();
 
 			} catch (Exception e) {
-				System.out.println("Error" + e.getMessage());
+				System.out.println("Error: Datos incorrectos.");
 				error = 1;
 			}
 		} while (error == 1);
+		CurrentConditions condicionesActuales = new CurrentConditions(
 
-<<<<<<< HEAD
+				texto, temp, new Wind(chill, direction, speed), new Astronomy(sunrise, sunset),
+				new Atmosphere(humidity, pressure, visibility));
 
+		Forecast pronostico = new Forecast();
+		//pronostico.borrarForecast();                   //LIMPIAR TABLA
+		pronostico.cargarForecast();
+		System.out.println("   CONDICIONES ACTUALES   \n");
 
-}
+		condicionesActuales.mostrarCondicionesActuales();
 
-=======
+		System.out.println("\n   CLIMA PROXIMOS DIAS:   \n");
+
+		pronostico.leerForecast();
+
 	}
 
 }
@@ -274,7 +278,10 @@ class Forecast {
 	}
 
 	public void cargarForecast() {
-
+		int error = 0;
+		double low=0;
+		double high=0;
+		
 		Scanner sc = new Scanner(System.in);
 		try {
 			Connection conection = DriverManager.getConnection(URL, USR, PSW);
@@ -282,17 +289,30 @@ class Forecast {
 					.prepareStatement("INSERT INTO forecast (date, day, text, high, low) VALUES(?,?,?,?,?)");
 
 			for (int i = 0; i < 2; i++) {
-				System.out.println("**Ingrese siguiente dia de FORECAST**");
+
+				error = 0;
+				System.out.println("  Ingrese siguiente dia de FORECAST  ");
 				System.out.println("Ingrese nombre de dia: ");
 				String day = sc.next();
 				System.out.println("Ingrese fecha: ");
 				String date = sc.next();
 				System.out.println("Ingrese descripcion: ");
 				String text = sc.next();
-				System.out.println("Ingrese temperatura Minima: ");
-				double low = sc.nextDouble();
-				System.out.println("Ingrese temperatura Maxima: ");
-				double high = sc.nextDouble();
+
+				do {
+					try {
+						Scanner scI = new Scanner(System.in);
+						System.out.println("Ingrese temperatura Minima: ");
+						low = scI.nextDouble();
+						error = 0;
+						System.out.println("Ingrese temperatura Maxima: ");
+						high = scI.nextDouble();
+						error = 0;
+					} catch (Exception e) {
+						System.out.println("Ingrese valores correctos");
+						error = 1;
+					}
+				} while (error == 1);
 
 				miSentencia.setString(1, date);
 				miSentencia.setString(2, day);
@@ -300,37 +320,47 @@ class Forecast {
 				miSentencia.setDouble(4, high);
 				miSentencia.setDouble(5, low);
 				miSentencia.execute();
-				
+
 			}
 			miSentencia.close();
 
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
+		} catch (Exception i) {
+			System.out.println(i.getMessage());
 		}
 
 	}
 
+	public void borrarForecast(){
+		try {
+			Connection conection = DriverManager.getConnection(URL,USR,PSW);
+			Statement st = conection.createStatement();
+			st.execute("DELETE FROM forecast");
+			st.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			System.out.println("No se puede borrar Forecast. Error:" +e.getMessage());		}
+	}
+	
+	
 	public void leerForecast() {
 		try {
 			Connection conection = DriverManager.getConnection(URL, USR, PSW);
 			Statement st = conection.createStatement();
 			ResultSet rs = st.executeQuery("SELECT * FROM forecast");
-			while(rs.next()){
-				
-				System.out.println("\n"+rs.getString(2)+" " + rs.getString(1));
+			//st.execute("DELETE FROM forecast");
+			while (rs.next()) {
+
+				System.out.println("\n" + rs.getString(2) + " " + rs.getString(1));
 				System.out.println("Estado: " + rs.getString(3));
 				System.out.println("Minima: " + rs.getFloat(5));
 				System.out.println("Maxima: " + rs.getFloat(4));
 			}
-			
-			
-			
-			
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Error en consulta SQL" + e.getMessage() + e.getSQLState());
+			
 		}
-
 
 	}
 
@@ -369,8 +399,6 @@ class Forecast {
 	public double getLow() {
 		return low;
 	}
->>>>>>> betaIII
-
 
 }
 
